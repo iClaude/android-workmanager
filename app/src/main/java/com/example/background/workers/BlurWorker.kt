@@ -19,6 +19,7 @@ package com.example.background.workers
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.text.TextUtils
 import android.util.Log
 
 import com.example.background.KEY_IMAGE_URI
@@ -35,21 +36,36 @@ class BlurWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, params) {
     override fun doWork(): Result {
         val appContext = applicationContext
 
-        // Makes a notification when the work starts and slows down the work so that it's easier to
-        // see each WorkRequest start, even on emulated devices
+        val resourceUri = inputData.getString(KEY_IMAGE_URI)
+
         makeStatusNotification("Blurring image", appContext)
-        sleep()
 
         return try {
-            createBlurredBitmap(appContext, inputData.getString(KEY_IMAGE_URI))
-            Result.SUCCESS
-        } catch (fileNotFoundException: FileNotFoundException) {
-            Log.e(TAG, "Failed to decode input stream", fileNotFoundException)
-            throw RuntimeException("Failed to decode input stream", fileNotFoundException)
+            // REMOVE THIS
+            //    val picture = BitmapFactory.decodeResource(
+            //            appContext.resources,
+            //            R.drawable.test)
+
+            if (TextUtils.isEmpty(resourceUri)) {
+                Log.e(TAG, "Invalid input uri")
+                throw IllegalArgumentException("Invalid input uri")
+            }
+
+            val resolver = appContext.contentResolver
+
+            val picture = BitmapFactory.decodeStream(
+                    resolver.openInputStream(Uri.parse(resourceUri)))
+
+            val output = blurBitmap(picture, appContext)
+
+            // Write bitmap to a temp file
+            val outputUri = writeBitmapToFile(appContext, output)
+            val outputData = Data.Builder().putString(KEY_IMAGE_URI, outputUri.toString()).build()
+
+            Result.success(outputData)
         } catch (throwable: Throwable) {
-            // If there were errors, return FAILURE
             Log.e(TAG, "Error applying blur", throwable)
-            Result.FAILURE
+            Result.failure()
         }
     }
 
@@ -73,7 +89,6 @@ class BlurWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, params) {
         val outputUri = writeBitmapToFile(appContext, output)
 
         // Return the output for the temp file
-        outputData = Data.Builder().putString(KEY_IMAGE_URI, outputUri.toString()
-        ).build()
+        val outputData = Data.Builder().putString(KEY_IMAGE_URI, outputUri.toString()).build()
     }
 }

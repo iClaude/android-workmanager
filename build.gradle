@@ -9,7 +9,7 @@ buildscript {
     versions.androidx = "1.0.0"
     versions.constraint_layout = "2.0.0-alpha2"
     versions.glide = "4.8.0"
-    versions.work = "1.0.0-alpha10"
+    versions.work = "1.0.0-alpha13"
 
     repositories {
         google()

@@ -61,15 +61,15 @@ class SaveImageToFileWorker(ctx: Context, params: WorkerParameters) : Worker(ctx
                 val output = Data.Builder()
                         .putString(KEY_IMAGE_URI, imageUrl)
                         .build()
-                outputData = output
-                Result.SUCCESS
+                val outputData = output
+                Result.success(outputData)
             } else {
                 Log.e(TAG, "Writing to MediaStore failed")
-                Result.FAILURE
+                Result.failure()
             }
         } catch (exception: Exception) {
             Log.e(TAG, "Unable to save image to Gallery", exception)
-            Result.FAILURE
+            Result.failure()
         }
     }
 }

@@ -19,30 +19,23 @@ package com.example.background
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import android.net.Uri
+import androidx.work.*
 
 import com.example.background.workers.BlurWorker
 import com.example.background.workers.CleanupWorker
 import com.example.background.workers.SaveImageToFileWorker
 
-import androidx.work.Constraints
-import androidx.work.Data
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.OneTimeWorkRequest
-import androidx.work.WorkManager
-import androidx.work.WorkStatus
-
 class BlurViewModel : ViewModel() {
 
     internal var imageUri: Uri? = null
     internal var outputUri: Uri? = null
-    internal val outputStatus: LiveData<List<WorkStatus>>
+    internal val outputStatus: LiveData<List<WorkInfo>>
     private val workManager: WorkManager = WorkManager.getInstance()
 
     init {
         // This transformation makes sure that whenever the current work Id changes the WorkStatus
         // the UI is listening to changes
-        outputStatus = workManager.getStatusesByTagLiveData(TAG_OUTPUT)
+        outputStatus = workManager.getWorkInfosByTagLiveData(TAG_OUTPUT)
     }
 
     /**
